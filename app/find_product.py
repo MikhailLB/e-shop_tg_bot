@@ -1,6 +1,8 @@
 from aiogram import F, Router
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
 from aiogram.fsm.context import FSMContext
+
+from app.states import FindBy
 from db.category import categories
 from db.get_data import *
 import keyboards.keyboards as kb
@@ -8,15 +10,27 @@ import keyboards.keyboards as kb
 user_product_index = {}
 order_router = Router()
 
-@order_router.message(F.text == "Оформление заказа")
-async def make_order(message: Message):
-    await message.answer("Выберите опцию:", reply_markup=kb.make_order_keyboard)
-
+@order_router.callback_query(F.data == "goods_option")
+async def make_order(callback: CallbackQuery):
+    await callback.message.edit_text("Выберите опцию:", reply_markup=kb.make_order_keyboard)
 
 @order_router.callback_query(F.data == "find_product")
 async def find_item(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text("Выберите категорию:", reply_markup=kb.find_product_keyboard)
 
+def get_keyboard_with_id(item_id: int):
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(
+            text="➕ Добавить в корзину",
+            callback_data=f"add_to_cart|{item_id}"
+        )
+    ],
+    [
+     InlineKeyboardButton(text="Назад",
+                          callback_data=f"back_to_main_menu_with_photo")
+    ]
+    ])
+    return keyboard
 
 async def get_product_keyboard(category: str, index: int, total: int, product_id: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
@@ -24,7 +38,13 @@ async def get_product_keyboard(category: str, index: int, total: int, product_id
          InlineKeyboardButton(text=f"{index + 1}/{total}", callback_data="ignore"),
          InlineKeyboardButton(text="⏩", callback_data=f"next_item|{category}|{index}")],
         [InlineKeyboardButton(text="➕ Добавить в корзину", callback_data=f"add_to_cart|{product_id}")],
+        [InlineKeyboardButton(text="Назад", callback_data=f"back_to_categories")],
     ])
+
+@order_router.callback_query(F.data == "back_to_categories")
+async def find_item(callback: CallbackQuery, state: FSMContext):
+    await callback.message.answer("Выберите категорию:", reply_markup=kb.find_product_keyboard)
+    await callback.answer()
 
 @order_router.callback_query(F.data == "find_product")
 async def find_item(callback: CallbackQuery, state: FSMContext):
@@ -123,3 +143,57 @@ for category, callback in categories.items():
     handler = generate_category_handler(category, callback)
     generate_category_handler(category, callback)
     order_router.callback_query(F.data == callback)(handler)
+
+
+@order_router.callback_query(F.data == "search_by_options")
+async def search_by_options(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text("Выберите опцию:", reply_markup=kb.search_by)
+
+
+@order_router.callback_query(F.data == "search_by_name")
+async def search_by_options_name(callback: CallbackQuery, state: FSMContext):
+    await callback.message.answer("Введите имя товара так, как оно указано на https://www.poizon.com\nПример: Air Jordan 11 Retro 'Defining Moment DMP 2023 Gratitude'", reply_markup=kb.back_menu)
+    await state.set_state(FindBy.name)
+    await callback.answer()
+
+@order_router.message(FindBy.name)
+async def search_by_options_name1(message: Message, state: FSMContext):
+    await state.update_data(name=message.text)
+    item = get_item_for_name(message.text)
+
+    if item:
+        item_id, name, description, size, color, price, img_url = item[0]
+
+        await message.answer_photo(
+            photo=img_url,
+            caption=f"🛒 {name}\n📖 {description}\n📖 Размеры: {size}\n📖 Цвета: {color}\n💰 Цена: {price} руб.",
+            reply_markup=get_keyboard_with_id(item_id)
+        )
+
+        await state.clear()
+    else:
+        await message.answer("Товар не найден!\nПопробуйте поиск по ссылке или проверьте корректность введенных данных",
+                             reply_markup=kb.search_by)
+
+@order_router.callback_query(F.data == "search_by_link")
+async def search_by_options_name(callback: CallbackQuery, state: FSMContext):
+    await callback.message.answer("Введите ссылку на товар на https://www.poizon.com", reply_markup=kb.back_menu)
+    await state.set_state(FindBy.link)
+    await callback.answer()
+
+@order_router.message(FindBy.link)
+async def search_by_options_name1(message: Message, state: FSMContext):
+    await state.update_data(name=message.text)
+    item = get_item_for_link(message.text)
+    if item:
+        item_id, name, description, size, color, price, img_url = item[0]
+
+        await message.answer_photo(
+            photo=img_url,
+            caption=f"🛒 {name}\n📖 {description}\n📖 Размеры: {size}\n📖 Цвета: {color}\n💰 Цена: {price} руб.",
+            reply_markup=get_keyboard_with_id(item_id)
+        )
+
+        await state.clear()
+    else:
+        await message.answer("Товар не найден! Попробуйте поиск по ссылке или проверьте корректность введенных данных", reply_markup=kb.search_by)

@@ -9,14 +9,14 @@ from db.update_data import update_user_data, delete_user_data
 
 set_order_router = Router()
 
-@set_order_router.callback_query(F.data.startswith("checkout_order"))
+@set_order_router.callback_query(F.data == "checkout_order")
 async def chose_delivery_method(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text("Выберите метод доставки: ", reply_markup=kb.choose_delivery_method)
+
+@set_order_router.callback_query(F.data == "checkout_order_with_photo" )
+async def chose_delivery_method2(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer("Выберите метод доставки: ", reply_markup=kb.choose_delivery_method)
     await callback.answer()
-
-@set_order_router.message(F.text == "Изменить адрес доставки")
-async def chose_delivery_method(message: Message, state: FSMContext):
-    await message.answer("Выберите метод доставки: ", reply_markup=kb.choose_delivery_method)
 
 @set_order_router.callback_query(F.data.startswith("currier_delivery"))
 async def chose_delivery_method3(callback: CallbackQuery, state: FSMContext):
@@ -40,15 +40,14 @@ async def chose_delivery_method3(callback: CallbackQuery, state: FSMContext):
         )
         await callback.message.answer("Введите ваше имя:")
     else:
-        await callback.message.answer(
+        await callback.message.edit_text(
             "Вы уже зарегистрированы. Желаете изменить информацию?", reply_markup=kb.edit_personal_data_information
         )
 
 @set_order_router.callback_query(F.data.startswith("change_address"))
 async def personal_data(callback: CallbackQuery, state: FSMContext):
     delete_user_data(callback.from_user.id)
-    await callback.message.answer("Выберите метод доставки: ", reply_markup=kb.choose_delivery_method)
-    await callback.answer()
+    await callback.message.edit_text("Выберите метод доставки: ", reply_markup=kb.choose_delivery_method)
 
 
 @set_order_router.message(RegCurr.name)
@@ -117,8 +116,6 @@ async def get_phone(message: Message, state: FSMContext):
                              f"Почтовый индекс: {index}\n"
                              f"Телефон: {telephone}\n"
                              f"Метод доставки: {delivery_method}", reply_markup=kb.make_order_continue_keyboard)
-
-        await message.answer(f"Выбери нужную опцию, {message.from_user.first_name}!\n")
     except Exception as e:
         await message.answer(f"Ошибка при создании пользователя! Попробуйте еще раз")
 
@@ -146,7 +143,7 @@ async def chose_delivery_method3(callback: CallbackQuery, state: FSMContext):
         )
         await callback.message.answer("Введите ваше имя:")
     else:
-        await callback.message.answer(
+        await callback.message.edit_text(
             "Вы уже зарегистрированы. Желаете изменить информацию?", reply_markup=kb.edit_personal_data_information
         )
 

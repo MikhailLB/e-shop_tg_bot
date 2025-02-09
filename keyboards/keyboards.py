@@ -1,22 +1,30 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
 
-main_keyboard = ReplyKeyboardMarkup(keyboard=[
-    [KeyboardButton(text="Оформление заказа"),
-     KeyboardButton(text="Информация о заказе")],
-    [KeyboardButton(text="Связь с поддержкой"),
-     KeyboardButton(text="Часто задаваемые вопросы")],
-     [KeyboardButton(text="Отзывы"), KeyboardButton(text="Корзина")]
-    , [KeyboardButton(text="Изменить адрес доставки")]],
-    resize_keyboard=True,
-    input_field_placeholder="Выберите опцию"
+main_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="Товары", callback_data="goods_option"),InlineKeyboardButton(text="Корзина", callback_data="cart_kb")],
+        [InlineKeyboardButton(text="Информация о заказе", callback_data="info_about_order"),InlineKeyboardButton(text="Связь с поддержкой", callback_data="call_support")],
+        [InlineKeyboardButton(text="Часто задаваемые вопросы(FAQ)", callback_data="faq"), InlineKeyboardButton(text="Отзывы", callback_data="review_kb")],
+        [InlineKeyboardButton(text="Изменить адрес доставки", callback_data="change_address")]
+
+
+    ]
 )
 
 make_order_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Найти товар", callback_data="find_product"),
      InlineKeyboardButton(text="Оформить заказ", callback_data="checkout_order")],
+        [InlineKeyboardButton(text="Назад", callback_data="back_to_main_menu")],
 ])
 make_order_continue_keyboard = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text="Продолжить оформление заказа", callback_data="make_order_continue")]
+    [InlineKeyboardButton(text="Продолжить оформление заказа", callback_data="make_order_continue")],
+    [InlineKeyboardButton(text="Назад", callback_data="back_to_main_menu")],
+])
+
+check_order = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="Посмотреть все заказы", callback_data="check_all_orders")],
+    [InlineKeyboardButton(text="Статус текущего заказа", callback_data="check_order")],
+    [InlineKeyboardButton(text="Назад", callback_data="back_to_main_menu")],
 ])
 
 add_to_cart = ReplyKeyboardMarkup(keyboard=[
@@ -29,30 +37,46 @@ edit_personal_data_information = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(text="Изменить адрес доставки", callback_data="change_address")],
         [InlineKeyboardButton(text="Продолжить оформление заказа", callback_data="make_order_continue")],
+        [InlineKeyboardButton(text="Назад", callback_data="back_to_main_menu")],
     ]
 )
 choose_delivery_method = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(text="Доставка курьером", callback_data="currier_delivery")],
         [InlineKeyboardButton(text="Доставка в постомат", callback_data="postomat_delivery")],
+        [InlineKeyboardButton(text="Назад", callback_data="back_to_main_menu")],
     ]
 )
-come_back = ReplyKeyboardMarkup(keyboard=[
-    [KeyboardButton(text="Назад")]], resize_keyboard=True)
+back_menu = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="Назад", callback_data="back_to_main_menu")]]
+)
 
+back_emd_cart = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="Назад", callback_data="back_to_main_menu_with_photo"), InlineKeyboardButton(text="Корзина", callback_data="cart_kb")]]
+)
+
+search_by_key = InlineKeyboardMarkup(
+    inline_keyboard=[[InlineKeyboardButton(text="➕ Добавить в корзину", callback_data="add_to_cart")], [InlineKeyboardButton(text="Назад", callback_data="back_to_main_menu_with_photo")]]
+)
 
 reviews = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(text="Оставить отзыв", callback_data="post_review"),
         InlineKeyboardButton(text="Посмотреть отзывы", callback_data="check_reviews")],
-        [InlineKeyboardButton(text="Назад", callback_data="find_product")]
+        [InlineKeyboardButton(text="Назад", callback_data="back_to_main_menu")]
     ]
 )
 
+search_by = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="Искать по ссылке", callback_data="search_by_link"),
+        InlineKeyboardButton(text="Искать по названию", callback_data="search_by_name")],
+        [InlineKeyboardButton(text="Назад", callback_data="back_to_main_menu")]
+    ]
+)
 
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-
-# Главное меню поиска товара
 find_product_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Нижнее белье", callback_data="category_underwear")],
     [InlineKeyboardButton(text="Купальники и пляжная одежда", callback_data="category_swimwear")],
@@ -62,7 +86,8 @@ find_product_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Мужские аксессуары", callback_data="category_men_accessories")],
     [InlineKeyboardButton(text="Женская обувь", callback_data="category_women_shoes")],
     [InlineKeyboardButton(text="Мужская обувь", callback_data="category_men_shoes")],
-    [InlineKeyboardButton(text="Поиск по названию", callback_data="search_by_name")],
+    [InlineKeyboardButton(text="Поиск по названию", callback_data="search_by_options")],
+    [InlineKeyboardButton(text="Назад", callback_data="back_to_main_menu")],
 ])
 
 womenwear_keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -104,7 +129,6 @@ menswear_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Назад", callback_data="back_to_find_product")]
 ])
 
-# Женские аксессуары
 women_accessories_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Сумки и клатчи", callback_data="women_acc_bags")],
     [InlineKeyboardButton(text="Ремни и пояса", callback_data="women_acc_belts")],
@@ -117,7 +141,6 @@ women_accessories_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Назад", callback_data="back_to_find_product")]
 ])
 
-# Мужские аксессуары
 men_accessories_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Ремни", callback_data="men_acc_belts")],
     [InlineKeyboardButton(text="Сумки и рюкзаки", callback_data="men_acc_bags")],
@@ -129,7 +152,6 @@ men_accessories_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Назад", callback_data="back_to_find_product")]
 ])
 
-# Женская обувь
 women_shoes_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Туфли и лодочки", callback_data="women_shoes_heels")],
     [InlineKeyboardButton(text="Ботильоны и сапоги", callback_data="women_shoes_boots")],
@@ -139,7 +161,6 @@ women_shoes_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Назад", callback_data="back_to_find_product")]
 ])
 
-# Мужская обувь
 men_shoes_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Классическая обувь", callback_data="men_shoes_classic")],
     [InlineKeyboardButton(text="Мужские ботинки и сапоги", callback_data="men_shoes_boots")],
@@ -149,7 +170,6 @@ men_shoes_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Назад", callback_data="back_to_find_product")]
 ])
 
-# Универсальные категории
 homewear_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Мужская домашняя одежда", callback_data="homewear_men")],
     [InlineKeyboardButton(text="Женская домашняя одежда", callback_data="homewear_women")],

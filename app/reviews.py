@@ -5,16 +5,14 @@ from aiogram.fsm.context import FSMContext
 from app.states import *
 from db.get_data import *
 import keyboards.keyboards as kb
-from db.update_data import update_user_data, delete_user_data, add_review
+from db.update_data import add_review
 
 make_review_router = Router()
 
 
-@make_review_router.message(F.text == "Отзывы")
-async def reviews(message: Message):
-    await message.answer(
-        "Выберите желаемую опцию:", reply_markup=kb.reviews
-    )
+@make_review_router.callback_query(F.data == "review_kb")
+async def check_review(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text("Выберите желаемую опцию:", reply_markup=kb.reviews)
 
 
 def get_review_keyboard(index, total):

@@ -1,5 +1,4 @@
 from aiogram.fsm.state import State, StatesGroup
-from sqlalchemy.testing.assertsql import SQLAsserter
 
 
 class MakeOrder(StatesGroup):
@@ -17,6 +16,7 @@ class RegPost(StatesGroup):
     index = State()
     telephone = State()
     delivery_method = State()
+
 class RegCurr(StatesGroup):
     name = State()
     second_name = State()
@@ -26,6 +26,7 @@ class RegCurr(StatesGroup):
     index = State()
     telephone = State()
     delivery_method = State()
+
 class PostReview(StatesGroup):
     stars = State()
     comment = State()
@@ -33,3 +34,16 @@ class PostReview(StatesGroup):
 class AddToCart(StatesGroup):
     size = State()
     color = State()
+
+class FindBy(StatesGroup):
+    link = State()
+    name = State()
+    id = State()
+
+class AddDeliveryLink(StatesGroup):
+    link = State()
+    order_id = State()
+
+class DeleteProduct(StatesGroup):
+    name = State()
+    link = State()

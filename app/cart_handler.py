@@ -1,5 +1,3 @@
-from itertools import product
-
 from aiogram import F, Router
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
 from aiogram.fsm.context import FSMContext
@@ -20,10 +18,13 @@ async def get_cart_keyboard(index: int, total: int,) -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="⏩", callback_data=f"next_cart_item|{index+1}")
         ],
         [
-            InlineKeyboardButton(text="🛒 Оформить заказ", callback_data="checkout_order")
+            InlineKeyboardButton(text="🛒 Оформить заказ", callback_data="checkout_order_with_photo")
         ],
         [
             InlineKeyboardButton(text="❌ Удалить", callback_data=f"remove_from_cart|{index}")
+        ],
+        [
+            InlineKeyboardButton(text="Назад", callback_data=f"back_to_main_menu_with_photo")
         ]
     ])
 
@@ -104,27 +105,28 @@ async def select_color(callback: CallbackQuery, state: FSMContext):
 
         await callback.message.edit_media(
             media=InputMediaPhoto(media=get_products_by_id(int(product_id))[0][2],
-                                  caption=f"✅ Товар добавлен в корзину!\nРазмер: {size}\nЦвет: {color}")
+                                  caption=f"✅ Товар добавлен в корзину!\nРазмер: {size}\nЦвет: {color}"), reply_markup=kb.back_emd_cart
         )
         await callback.answer("🎉 Товар успешно добавлен в корзину!")
     except Exception as e:
         await callback.answer("Не удалось добавить товар в корзину!")
 
 
-@cart_router.message(F.text == "Корзина")
-async def cart(message: Message, state: FSMContext):
+@cart_router.callback_query(F.data == "cart_kb")
+async def cart(callback: CallbackQuery, state: FSMContext):
     await state.clear()
-    items = get_cart_items(message.from_user.id)
+    items = get_cart_items(callback.from_user.id)
 
     if not items:
-        await message.answer("🛒 Ваша корзина пуста!")
+        await callback.message.answer("🛒 Ваша корзина пуста!", reply_markup=kb.back_menu)
+        await callback.answer()
         return
 
     index = 0
     await state.update_data(cart_items=items, cart_index=index)
 
     name, description, size, color, price, url, product_id = items[index]
-    await message.answer_photo(
+    await callback.message.answer_photo(
         photo=url,
         caption=f"<b>{name}</b>\n\n"
                 f"📄 Описание: {description if description else 'Нет описания'}\n"
@@ -134,6 +136,7 @@ async def cart(message: Message, state: FSMContext):
         reply_markup=await get_cart_keyboard(index, len(items)),
         parse_mode="HTML"
     )
+    await callback.answer()
 
 
 @cart_router.callback_query(F.data.startswith("prev_cart_item"))

@@ -72,16 +72,26 @@ def insert_products(data_list):
     cursor = conn.cursor()
 
     query = '''
-    INSERT INTO products (name, url, size, color, description, photo_id, price, category)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    '''
+        INSERT INTO products (name, url, size, color, description, photo_id, price, category)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(name, url) DO UPDATE SET
+            name= excluded.name,
+            url= excluded.url,
+            size = excluded.size,
+            color = excluded.color,
+            description = excluded.description,
+            photo_id = excluded.photo_id,
+            price = excluded.price,
+            category = excluded.category
+        '''
 
-    # Фильтруем данные: убираем строки, где обязательные поля пустые
     filtered_data = [row for row in data_list if row[0] and row[6] and row[7]]
 
     try:
         cursor.executemany(query, filtered_data)
         conn.commit()
+    except sqlite3.IntegrityError as e:
+        print(f"Ошибка целостности данных: {e}")
     finally:
         conn.close()
 
@@ -95,5 +105,61 @@ def delete_cart_item(user_id: int, product_id: int):
         (user_id, product_id)
     )
 
+    conn.commit()
+    conn.close()
+
+def add_order_status(order_id, status):
+    conn = sqlite3.connect("omnia_shop.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    UPDATE orders
+    SET order_status = ?
+    WHERE id = ?
+    """, (status, order_id))
+
+    conn.commit()
+    conn.close()
+
+def add_order_delivery_link(order_id, tracking):
+    conn = sqlite3.connect("omnia_shop.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    UPDATE orders
+    SET tracking = ?
+    WHERE id = ?
+    """, (tracking, order_id))
+
+    conn.commit()
+    conn.close()
+
+def delete_product_by_name(name):
+    conn = sqlite3.connect("omnia_shop.db")
+    cursor = conn.cursor()
+    cursor.execute("PRAGMA foreign_keys = ON")
+    cursor.execute("DELETE FROM products WHERE name = ? OR url = ?", (name,name))
+
+
+    conn.commit()
+    conn.close()
+
+
+def add_admin_to_db(telegram_id: int, name):
+    conn = sqlite3.connect("omnia_shop.db")
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "INSERT INTO administrators (telegram_id, role, name) VALUES (?, 'admin', ?)",
+        (telegram_id,name)
+    )
+
+    conn.commit()
+    conn.close()
+
+def delete_admin_from_bd(telegram_id):
+    conn = sqlite3.connect("omnia_shop.db")
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM administrators WHERE telegram_id = ?", (telegram_id,))
     conn.commit()
     conn.close()
